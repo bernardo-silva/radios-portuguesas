@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "radios-portuguesas"
+version = "0.1.0"
+description = "Fetches and stores music data from portuguese radio stations."
+authors = ["Bernardo Silva <bfalmeidasilva@tecnico.ulisboa.pt>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.2"
+xmltodict = "^0.13.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
