@@ -8,6 +8,7 @@ import xmltodict
 from urls import (
     URL_RADAR,
     URL_COMERCIAL,
+    URL_M80,
 )
 
 @dataclass
@@ -41,7 +42,20 @@ def fetch_comercial() -> Optional[Song]:
 
     return Song(title=title, artist=artist)
 
+def fetch_m80() -> Optional[Song]:
+    """ Fetches currently playing song and artist from M80 """
+    result = xmltodict.parse(requests.get(URL_M80).text)
+    try:
+        playing = result["RadioInfo"]["Table"]
+        title = playing["DB_DALET_TITLE_NAME"]
+        artist = playing["DB_DALET_ARTIST_NAME"]
+
+    except AttributeError:
+        return None
+
+    return Song(title=title, artist=artist)
 
 if __name__ == "__main__":
     print("Radar: ", fetch_radar())
     print("Comercial: ", fetch_comercial())
+    print("M80: ", fetch_m80())
