@@ -13,52 +13,17 @@ from urls import (
     URL_RADAR,
 )
 
+
 @dataclass
 class Song:
-    """ Song dataclass """
+    """Song dataclass"""
+
     title: str
     artist: str
 
-def fetch_radar() -> Optional[Song]:
-    """ Fetches currently playing song and artist from RadarFM """
-    playing = BeautifulSoup(requests.get(URL_RADAR).text,
-                            "html.parser").get_text().strip()
-
-    try:
-        artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
-    except ValueError:
-        return None
-
-    return Song(title=title, artist=artist)
-
-def fetch_comercial() -> Optional[Song]:
-    """ Fetches currently playing song and artist from Comercial """
-    result = xmltodict.parse(requests.get(URL_COMERCIAL).text)
-    try:
-        playing = result["RadioInfo"]["Table"]
-        title = playing["DB_DALET_TITLE_NAME"]
-        artist = playing["DB_DALET_ARTIST_NAME"]
-
-    except AttributeError:
-        return None
-
-    return Song(title=title, artist=artist)
-
-def fetch_m80() -> Optional[Song]:
-    """ Fetches currently playing song and artist from M80 """
-    result = xmltodict.parse(requests.get(URL_M80).text)
-    try:
-        playing = result["RadioInfo"]["Table"]
-        title = playing["DB_DALET_TITLE_NAME"]
-        artist = playing["DB_DALET_ARTIST_NAME"]
-
-    except AttributeError:
-        return None
-
-    return Song(title=title, artist=artist)
 
 def _fetch_antenax(url: str) -> Optional[Song]:
-    """ Fetches currently playing song and artist from Antena X """
+    """Fetches currently playing song and artist from Antena X"""
     result = requests.get(url).json()
     try:
         playing = result[0]
@@ -70,17 +35,62 @@ def _fetch_antenax(url: str) -> Optional[Song]:
 
     return Song(title=title, artist=artist)
 
+
 def fetch_antena1() -> Optional[Song]:
-    """ Fetches currently playing song and artist from Antena 1 """
+    """Fetches currently playing song and artist from Antena 1"""
     return _fetch_antenax(URL_ANTENA1)
 
+
 def fetch_antena3() -> Optional[Song]:
-    """ Fetches currently playing song and artist from Antena 3 """
+    """Fetches currently playing song and artist from Antena 3"""
     return _fetch_antenax(URL_ANTENA3)
 
+
+def fetch_comercial() -> Optional[Song]:
+    """Fetches currently playing song and artist from Comercial"""
+    result = xmltodict.parse(requests.get(URL_COMERCIAL).text)
+    try:
+        playing = result["RadioInfo"]["Table"]
+        title = playing["DB_DALET_TITLE_NAME"]
+        artist = playing["DB_DALET_ARTIST_NAME"]
+
+    except AttributeError:
+        return None
+
+    return Song(title=title, artist=artist)
+
+
+def fetch_m80() -> Optional[Song]:
+    """Fetches currently playing song and artist from M80"""
+    result = xmltodict.parse(requests.get(URL_M80).text)
+    try:
+        playing = result["RadioInfo"]["Table"]
+        title = playing["DB_DALET_TITLE_NAME"]
+        artist = playing["DB_DALET_ARTIST_NAME"]
+
+    except AttributeError:
+        return None
+
+    return Song(title=title, artist=artist)
+
+
+def fetch_radar() -> Optional[Song]:
+    """Fetches currently playing song and artist from RadarFM"""
+    playing = (
+        BeautifulSoup(requests.get(URL_RADAR).text, "html.parser").get_text().strip()
+    )
+
+    try:
+        artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
+    except ValueError:
+        return None
+
+    return Song(title=title, artist=artist)
+
+
 if __name__ == "__main__":
-    print("Radar: ", fetch_radar())
-    print("Comercial: ", fetch_comercial())
-    print("M80: ", fetch_m80())
     print("Antena1: ", fetch_antena1())
     print("Antena3: ", fetch_antena3())
+    print("Comercial: ", fetch_comercial())
+    print("M80: ", fetch_m80())
+    print("Radar: ", fetch_radar())
