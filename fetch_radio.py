@@ -9,8 +9,11 @@ from urls import (
     URL_ANTENA1,
     URL_ANTENA3,
     URL_COMERCIAL,
+    URL_FUTURA,
     URL_M80,
     URL_RADAR,
+    URL_MEGAHITS,
+    URL_RENASCENCA,
     URL_RFM,
 )
 
@@ -60,6 +63,17 @@ def fetch_comercial() -> Optional[Song]:
 
     return Song(title=title, artist=artist)
 
+def fetch_futura() -> Optional[Song]:
+    """Fetches currently playing song and artist from Futura"""
+    result = requests.get(URL_FUTURA, timeout=5).json()
+    try:
+        playing = result["data"]["title"]
+        artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
+
+    except AttributeError:
+        return None
+
+    return Song(title=title, artist=artist)
 
 def fetch_m80() -> Optional[Song]:
     """Fetches currently playing song and artist from M80"""
@@ -91,9 +105,9 @@ def fetch_radar() -> Optional[Song]:
     return Song(title=title, artist=artist)
 
 
-def fetch_rfm() -> Optional[Song]:
-    """Fetches currently playing song and artist from RFM"""
-    result = xmltodict.parse(requests.get(URL_RFM, timeout=5).text)
+def _fetch_GRM(url: str) -> Optional[Song]:
+    """Fetches currently playing song and artist from Grupo Renascença Multimédia"""
+    result = xmltodict.parse(requests.get(url, timeout=5).text)
 
     try:
         playing = result["music"]["song"]
@@ -104,11 +118,26 @@ def fetch_rfm() -> Optional[Song]:
 
     return Song(title=title, artist=artist)
 
+def fetch_megahits() -> Optional[Song]:
+    """Fetches currently playing song and artist from RFM"""
+    return _fetch_GRM(URL_MEGAHITS)
+
+def fetch_renascenca() -> Optional[Song]:
+    """Fetches currently playing song and artist from RFM"""
+    return _fetch_GRM(URL_RENASCENCA)
+
+def fetch_rfm() -> Optional[Song]:
+    """Fetches currently playing song and artist from RFM"""
+    return _fetch_GRM(URL_RFM)
+
 
 if __name__ == "__main__":
     print("Antena1: ", fetch_antena1())
     print("Antena3: ", fetch_antena3())
     print("Comercial: ", fetch_comercial())
+    print("Futura: ", fetch_futura())
     print("M80: ", fetch_m80())
     print("Radar: ", fetch_radar())
+    print("MegaHits: ", fetch_megahits())
+    print("Renascenca: ", fetch_renascenca())
     print("RFM: ", fetch_rfm())
