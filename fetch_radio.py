@@ -11,6 +11,7 @@ from urls import (
     URL_COMERCIAL,
     URL_M80,
     URL_RADAR,
+    URL_RFM,
 )
 
 
@@ -24,7 +25,7 @@ class Song:
 
 def _fetch_antenax(url: str) -> Optional[Song]:
     """Fetches currently playing song and artist from Antena X"""
-    result = requests.get(url).json()
+    result = requests.get(url, timeout=5).json()
     try:
         playing = result[0]
         title = playing["dtitulo"]
@@ -48,7 +49,7 @@ def fetch_antena3() -> Optional[Song]:
 
 def fetch_comercial() -> Optional[Song]:
     """Fetches currently playing song and artist from Comercial"""
-    result = xmltodict.parse(requests.get(URL_COMERCIAL).text)
+    result = xmltodict.parse(requests.get(URL_COMERCIAL, timeout=5).text)
     try:
         playing = result["RadioInfo"]["Table"]
         title = playing["DB_DALET_TITLE_NAME"]
@@ -62,7 +63,7 @@ def fetch_comercial() -> Optional[Song]:
 
 def fetch_m80() -> Optional[Song]:
     """Fetches currently playing song and artist from M80"""
-    result = xmltodict.parse(requests.get(URL_M80).text)
+    result = xmltodict.parse(requests.get(URL_M80, timeout=5).text)
     try:
         playing = result["RadioInfo"]["Table"]
         title = playing["DB_DALET_TITLE_NAME"]
@@ -77,12 +78,28 @@ def fetch_m80() -> Optional[Song]:
 def fetch_radar() -> Optional[Song]:
     """Fetches currently playing song and artist from RadarFM"""
     playing = (
-        BeautifulSoup(requests.get(URL_RADAR).text, "html.parser").get_text().strip()
+        BeautifulSoup(requests.get(URL_RADAR, timeout=5).text, "html.parser")
+        .get_text()
+        .strip()
     )
 
     try:
         artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
     except ValueError:
+        return None
+
+    return Song(title=title, artist=artist)
+
+
+def fetch_rfm() -> Optional[Song]:
+    """Fetches currently playing song and artist from RFM"""
+    result = xmltodict.parse(requests.get(URL_RFM, timeout=5).text)
+
+    try:
+        playing = result["music"]["song"]
+        title = playing["name"]
+        artist = playing["artist"]
+    except AttributeError:
         return None
 
     return Song(title=title, artist=artist)
@@ -94,3 +111,4 @@ if __name__ == "__main__":
     print("Comercial: ", fetch_comercial())
     print("M80: ", fetch_m80())
     print("Radar: ", fetch_radar())
+    print("RFM: ", fetch_rfm())
