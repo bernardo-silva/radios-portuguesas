@@ -1,0 +1,40 @@
+.song-card {
+    width: 200px;
+    height: 250px;
+    text-align: left;
+    overflow: hidden;
+}
+
+.album-cover {
+    width: 200px;
+    height: 200px;
+}
+
+.song-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-artist {
+    font-size: 12px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.scrolling-text {
+    animation: scroll-text 10s linear infinite; /* Adjust the duration as needed */
+}
+
+@keyframes scroll-text {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}

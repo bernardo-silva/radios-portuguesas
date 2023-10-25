@@ -1,0 +1,22 @@
+{% extends 'base.html' %} {% block content %}
+<div id="grid-container"
+     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+  {% for radio in radios %}
+    <div style="border:black; text-align:center; display:inline-grid; width:200px;">
+      <a href="{{radio.url }}" target="_blank">
+        <p>
+        <img src="{{ url_for('static', filename=radio.image) }}"
+            style="height:16pt;"></img>
+            <strong> {{ radio.name }} </strong>
+        </p>
+      </a>
+      <div
+            hx-get="radio/{{radio.name}}"
+            hx-trigger="load"
+            hx-swap="outerHTML"
+            style="border:black;">
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
