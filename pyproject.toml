@@ -10,6 +10,9 @@ python = "^3.10"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.2"
 xmltodict = "^0.13.0"
+spotipy = "^2.23.0"
+python-dotenv = "^1.0.0"
+flask = "^3.0.0"
 
 
 [build-system]
