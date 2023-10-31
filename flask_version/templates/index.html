@@ -1,10 +1,11 @@
 {% extends 'base.html' %} {% block content %}
-<div class="grid-container">
+<div id="grid-container"
+     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 2fr));">
   {% for radio in radios %}
     <div class="radio-container">
       <a href="{{radio.url }}" target="_blank">
         <p>
-        <img src="{{ url_for('static', path=radio.image) }}"
+        <img src="{{ url_for('static', filename=radio.image) }}"
              style="height:16pt;" alt="{{ radio.name }}"></img>
         </p>
       </a>

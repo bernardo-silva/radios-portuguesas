@@ -4,7 +4,7 @@ import asyncio
 from logging import getLogger
 from typing import Optional, Callable
 from spotify import SpotifySong
-from fetch_radio import (
+from fetch_radio_async import (
     fetch_antena1,
     fetch_antena3,
     fetch_comercial,
@@ -34,17 +34,16 @@ class Radio:
     current_song: Optional[SpotifySong] = None
     last_update: Optional[datetime] = None
 
-    async def fetch(self):
-        song = await self.fetch_function()
+    def fetch(self):
+        song = self.fetch_function()
         if song is not None:
             self.last_update = datetime.now()
             self.current_song = SpotifySong.from_search(song.title, song.artist)
 
-    async def poll(self, interval: int):
+    def poll(self, interval: int):
         while True:
-            await self.fetch()
+            self.fetch()
             print(f"Updated {self.name}")
-            await asyncio.sleep(interval)
 
 
 def available_radios() -> list[Radio]:

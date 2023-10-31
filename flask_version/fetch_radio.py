@@ -4,9 +4,6 @@ from typing import Optional
 from dataclasses import dataclass
 from xml.parsers.expat import ExpatError
 import requests
-import asyncio
-import json
-import aiohttp
 from bs4 import BeautifulSoup
 import xmltodict
 from urls import (
@@ -46,45 +43,44 @@ class Song:
         except KeyError:
             return None
 
-async def fetch_data_from_url(url: str, content_type: str) -> Optional[aiohttp.ClientResponse]:
-    """Fetches data from a given URL using aiohttp"""
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, timeout=5) as response:
-                return await getattr(response, content_type)() if response.status == 200 else None
-        except aiohttp.ClientError:
-            return None
+
+def fetch_data_from_url(url: str) -> Optional[requests.Response]:
+    """Fetches data from a given url"""
+    try:
+        result = requests.get(url, timeout=5)
+        result.encoding = result.apparent_encoding
+        return result
+    except requests.exceptions.RequestException:
+        return None
 
 
-async def _fetch_antenax(url: str) -> Optional[Song]:
+def _fetch_antenax(url: str) -> Optional[Song]:
     """Fetches currently playing song and artist from Antena X"""
-    result = await fetch_data_from_url(url, "json")
-
+    result = fetch_data_from_url(url)
     if result is not None:
         try:
-            song_data = result[0]
-            return Song.from_dict(song_data, "dtitulo", "dcoment1")
-        except (json.JSONDecodeError, IndexError):
+            return Song.from_dict(result.json()[0], "dtitulo", "dcoment1")
+        except requests.exceptions.JSONDecodeError:
             pass
-
     return None
 
-async def fetch_antena1() -> Optional[Song]:
+
+def fetch_antena1() -> Optional[Song]:
     """Fetches currently playing song and artist from Antena 1"""
-    return await _fetch_antenax(URL_ANTENA1)
+    return _fetch_antenax(URL_ANTENA1)
 
 
-async def fetch_antena3() -> Optional[Song]:
+def fetch_antena3() -> Optional[Song]:
     """Fetches currently playing song and artist from Antena 3"""
-    return await _fetch_antenax(URL_ANTENA3)
+    return _fetch_antenax(URL_ANTENA3)
 
 
-async def _fetch_bauer(url: str) -> Optional[Song]:
+def _fetch_bauer(url: str) -> Optional[Song]:
     """Fetches currently playing song and artist from Bauer Media"""
-    result = await fetch_data_from_url(url, "text")
+    result = fetch_data_from_url(url)
     if result is not None:
         try:
-            parsed_data = xmltodict.parse(result)
+            parsed_data = xmltodict.parse(result.text)
             table = parsed_data.get("RadioInfo", {}).get("Table")
             if table:
                 return Song.from_dict(
@@ -95,32 +91,32 @@ async def _fetch_bauer(url: str) -> Optional[Song]:
     return None
 
 
-async def fetch_comercial() -> Optional[Song]:
+def fetch_comercial() -> Optional[Song]:
     """Fetches currently playing song and artist from Comercial"""
-    return await _fetch_bauer(URL_COMERCIAL)
+    return _fetch_bauer(URL_COMERCIAL)
 
 
-async def fetch_m80() -> Optional[Song]:
+def fetch_m80() -> Optional[Song]:
     """Fetches currently playing song and artist from M80"""
-    return await _fetch_bauer(URL_M80)
+    return _fetch_bauer(URL_M80)
 
 
-async def fetch_cidadefm() -> Optional[Song]:
+def fetch_cidadefm() -> Optional[Song]:
     """Fetches currently playing song and artist from Cidade FM"""
-    return await _fetch_bauer(URL_CIDADEFM)
+    return _fetch_bauer(URL_CIDADEFM)
 
 
-async def fetch_smooth() -> Optional[Song]:
+def fetch_smooth() -> Optional[Song]:
     """Fetches currently playing song and artist from Smooth FM"""
-    return await _fetch_bauer(URL_SMOOTH)
+    return _fetch_bauer(URL_SMOOTH)
 
 
-async def fetch_futura() -> Optional[Song]:
+def fetch_futura() -> Optional[Song]:
     """Fetches currently playing song and artist from Futura"""
-    result = await fetch_data_from_url(URL_FUTURA, "json")
+    result = fetch_data_from_url(URL_FUTURA)
     if result is not None:
         try:
-            playing = result.get("data", {}).get("title")
+            playing = result.json().get("data", {}).get("title")
             if playing:
                 artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
                 return Song(title=title, artist=artist)
@@ -130,12 +126,12 @@ async def fetch_futura() -> Optional[Song]:
     return None
 
 
-async def _fetch_php(url: str) -> Optional[Song]:
+def _fetch_php(url: str) -> Optional[Song]:
     """Fetches currently playing song and artist from .php links"""
-    result = await fetch_data_from_url(url, "text")
+    result = fetch_data_from_url(url)
 
     if result is not None:
-        soup = BeautifulSoup(result, "html.parser")
+        soup = BeautifulSoup(result.text, "html.parser")
         playing = soup.get_text().strip()
         try:
             artist, title = map(str.strip, playing.split(" - ", maxsplit=1))
@@ -145,51 +141,51 @@ async def _fetch_php(url: str) -> Optional[Song]:
     return None
 
 
-async def fetch_radar() -> Optional[Song]:
+def fetch_radar() -> Optional[Song]:
     """Fetches currently playing song and artist from RadarFM"""
-    return await _fetch_php(URL_RADAR)
+    return _fetch_php(URL_RADAR)
 
 
-async def fetch_oxigenio() -> Optional[Song]:
+def fetch_oxigenio() -> Optional[Song]:
     """Fetches currently playing song and artist from RadarFM"""
-    return await _fetch_php(URL_OXIGENIO)
+    return _fetch_php(URL_OXIGENIO)
 
 
-async def _fetch_grm(url: str) -> Optional[Song]:
+def _fetch_grm(url: str) -> Optional[Song]:
     """Fetches currently playing song and artist from Grupo Renascença Multimédia"""
-    result = await fetch_data_from_url(url, "text")
+    result = fetch_data_from_url(url)
     if result is not None:
         try:
-            parsed_data = xmltodict.parse(result)
+            parsed_data = xmltodict.parse(result.text)
             table = parsed_data.get("music", {}).get("song")
-            if table is not None:
+            if table:
                 return Song.from_dict(table, "name", "artist")
         except (KeyError, ExpatError):
             pass
     return None
 
 
-async def fetch_megahits() -> Optional[Song]:
+def fetch_megahits() -> Optional[Song]:
     """Fetches currently playing song and artist from RFM"""
-    return await _fetch_grm(URL_MEGAHITS)
+    return _fetch_grm(URL_MEGAHITS)
 
 
-async def fetch_renascenca() -> Optional[Song]:
+def fetch_renascenca() -> Optional[Song]:
     """Fetches currently playing song and artist from RFM"""
-    return await _fetch_grm(URL_RENASCENCA)
+    return _fetch_grm(URL_RENASCENCA)
 
 
-async def fetch_rfm() -> Optional[Song]:
+def fetch_rfm() -> Optional[Song]:
     """Fetches currently playing song and artist from RFM"""
-    return await _fetch_grm(URL_RFM)
+    return _fetch_grm(URL_RFM)
 
 
-async def fetch_sbsr() -> Optional[Song]:
+def fetch_sbsr() -> Optional[Song]:
     """Fetches currently playing song and artist from SBSR"""
-    result = await fetch_data_from_url(URL_SBSR, "text")
+    result = fetch_data_from_url(URL_SBSR)
     if result is not None:
         try:
-            parsed_data = xmltodict.parse(result)
+            parsed_data = xmltodict.parse(result.text)
             current = parsed_data.get("BroadcastMonitor", {}).get("Current")
             if current is not None:
                 return Song.from_dict(current, "titleName", "artistName")
@@ -198,27 +194,21 @@ async def fetch_sbsr() -> Optional[Song]:
 
     return None
 
-async def main():
-    tasks = [
-        asyncio.create_task(fetch_antena1()),
-        asyncio.create_task(fetch_antena3()),
-        asyncio.create_task(fetch_comercial()),
-        asyncio.create_task(fetch_m80()),
-        asyncio.create_task(fetch_cidadefm()),
-        asyncio.create_task(fetch_smooth()),
-        asyncio.create_task(fetch_futura()),
-        asyncio.create_task(fetch_radar()),
-        asyncio.create_task(fetch_oxigenio()),
-        asyncio.create_task(fetch_sbsr()),
-        asyncio.create_task(fetch_megahits()),
-        asyncio.create_task(fetch_renascenca()),
-        asyncio.create_task(fetch_rfm())
-    ]
-
-    results = await asyncio.gather(*tasks)
-    for radio, result in zip(["Antena1", "Antena3", "Comercial", "M80", "CidadeFM", "Smooth",
-                             "Futura", "Radar", "Oxigenio", "SBSR", "MegaHits", "Renascenca", "RFM"], results):
-        print(f"{radio}: {result}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("Antena1: ", fetch_antena1())
+    print("Antena3: ", fetch_antena3())
+
+    print("Comercial: ", fetch_comercial())
+    print("M80: ", fetch_m80())
+    print("CidadeFM: ", fetch_cidadefm())
+    print("Smooth: ", fetch_smooth())
+
+    print("Futura: ", fetch_futura())
+    print("Radar: ", fetch_radar())
+    print("Oxigenio: ", fetch_oxigenio())
+    print("SBSR: ", fetch_sbsr())
+
+    print("MegaHits: ", fetch_megahits())
+    print("Renascenca: ", fetch_renascenca())
+    print("RFM: ", fetch_rfm())

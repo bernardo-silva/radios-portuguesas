@@ -1,24 +1,30 @@
-from flask import Flask, render_template
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+import asyncio
 from radio import available_radios
-from spotify import SpotifySong
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 radios = available_radios()
 radio_indices = {radio.name: n for n, radio in enumerate(radios)}
 
-app = Flask(__name__)
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "radios": radios})
 
-@app.route("/")
-def index():
-    return render_template("index.html", radios=radios)
-
-
-@app.route("/radio/<string:radio_name>", methods=["GET"])
-def update_data(radio_name):
+@app.get("/radio/{radio_name}")
+async def update_data(radio_name: str, request: Request):
     radio = radios[radio_indices[radio_name]]
-    radio.fetch()
+    # radio.fetch()
 
-    return render_template("song.html", radio_name=radio_name, song=radio.current_song)
+    context = {"request": request, "radio_name": radio_name, "song": radio.current_song}
 
+    return templates.TemplateResponse("song.html", context)
 
-if __name__ == "__main__":
-    app.run()
+@app.on_event('startup')
+async def app_startup():
+    for radio in radios:
+        asyncio.create_task(radio.poll(10))
