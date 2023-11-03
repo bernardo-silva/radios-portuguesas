@@ -5,6 +5,7 @@ from logging import getLogger
 from typing import Optional, Callable
 from spotify import SpotifySong
 from fetch_radio import (
+    Song,
     fetch_antena1,
     fetch_antena3,
     fetch_comercial,
@@ -31,20 +32,27 @@ class Radio:
     url: str
     image: str
     fetch_function: Callable
+    last_song: Optional[Song] = None
     current_song: Optional[SpotifySong] = None
     last_update: Optional[datetime] = None
 
-    async def fetch(self):
+    async def fetch(self) -> bool:
         song = await self.fetch_function()
-        if song is not None:
+        if song is not None and song != self.last_song:
+            self.last_song = song
             self.last_update = datetime.now()
             self.current_song = SpotifySong.from_search(song.title, song.artist)
+            return True
+        return True
 
     async def poll(self, interval: int):
         while True:
-            await self.fetch()
-            print(f"Updated {self.name}")
+            updated = await self.fetch()
+            if updated:
+                yield self.current_song
+            # print(f"Updated {self.name}")
             await asyncio.sleep(interval)
+            
 
 
 def available_radios() -> list[Radio]:
@@ -54,14 +62,14 @@ def available_radios() -> list[Radio]:
         Radio("CidadeFM", "", "", fetch_cidadefm),
         Radio("Comercial", "", "images/comercial.svg", fetch_comercial),
         Radio("Futura", "", "", fetch_futura),
-        Radio("M80", "", "m80.svg", fetch_m80),
-        Radio("Megahits", "", "", fetch_megahits),
-        Radio("Oxigénio", "", "", fetch_oxigenio),
+        Radio("M80", "", "images/m80.svg", fetch_m80),
+        Radio("Megahits", "https://megahits.sapo.pt/", "images/megahits.svg", fetch_megahits),
+        Radio("Oxigénio", "https://oxigenio.fm", "images/oxigenio.png", fetch_oxigenio),
         Radio("RFM", "", "images/rfm.png", fetch_rfm),
         Radio("Radar", "https://radarlisboa.fm", "images/radar.png", fetch_radar),
         Radio("Renascença", "", "", fetch_renascenca),
-        Radio("SBSR", "", "", fetch_sbsr),
-        Radio("Smooth", "", "", fetch_smooth),
+        Radio("SBSR", "https://sbsr.fm", "images/sbsr.png", fetch_sbsr),
+        Radio("Smooth", "https://smoothfm.pt/", "images/smoothfm.svg", fetch_smooth),
     ]
 
     # return {

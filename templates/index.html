@@ -1,18 +1,16 @@
 {% extends 'base.html' %} {% block content %}
 <div class="grid-container">
   {% for radio in radios %}
-    <div class="radio-container">
+    <div class="radio-container"
+        hx-ext="sse"
+        sse-connect="radio/{{radio.name}}">
       <a href="{{radio.url }}" target="_blank">
         <p>
         <img src="{{ url_for('static', path=radio.image) }}"
              style="height:16pt;" alt="{{ radio.name }}"></img>
         </p>
       </a>
-      <div
-            hx-get="radio/{{radio.name}}"
-            hx-trigger="load"
-            hx-swap="outerHTML"
-            style="border:black;">
+      <div sse-swap="message">
       </div>
     </div>
   {% endfor %}
