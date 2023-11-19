@@ -3,8 +3,8 @@ from datetime import datetime
 import asyncio
 from logging import getLogger
 from typing import Optional, Callable
-from spotify import SpotifySong
-from fetch_radio import (
+from .spotify import SpotifySong
+from .fetch_radio import (
     Song,
     fetch_antena1,
     fetch_antena3,
@@ -57,12 +57,22 @@ class Radio:
 def available_radios() -> list[Radio]:
     return [
         Radio("Antena1", "", "images/antena1.webp", fetch_antena1),
-        Radio("Antena3", "https://www.rtp.pt/play/popup/antena3", "images/antena3.webp", fetch_antena3,),
+        Radio(
+            "Antena3",
+            "https://www.rtp.pt/play/popup/antena3",
+            "images/antena3.webp",
+            fetch_antena3,
+        ),
         Radio("CidadeFM", "", "", fetch_cidadefm),
         Radio("Comercial", "", "images/comercial.svg", fetch_comercial),
         # Radio("Futura", "", "", fetch_futura),
         Radio("M80", "", "images/m80.svg", fetch_m80),
-        Radio("Megahits", "https://megahits.sapo.pt/", "images/megahits.svg", fetch_megahits),
+        Radio(
+            "Megahits",
+            "https://megahits.sapo.pt/",
+            "images/megahits.svg",
+            fetch_megahits,
+        ),
         Radio("Oxigénio", "https://oxigenio.fm", "images/oxigenio.png", fetch_oxigenio),
         Radio("RFM", "", "images/rfm.png", fetch_rfm),
         Radio("Radar", "https://radarlisboa.fm", "images/radar.png", fetch_radar),

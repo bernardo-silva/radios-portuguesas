@@ -9,7 +9,7 @@ import json
 import aiohttp
 from bs4 import BeautifulSoup
 import xmltodict
-from urls import (
+from .urls import (
     URL_ANTENA1,
     URL_ANTENA3,
     URL_COMERCIAL,
@@ -46,12 +46,19 @@ class Song:
         except KeyError:
             return None
 
-async def fetch_data_from_url(url: str, content_type: str) -> Optional[aiohttp.ClientResponse]:
+
+async def fetch_data_from_url(
+    url: str, content_type: str
+) -> Optional[aiohttp.ClientResponse]:
     """Fetches data from a given URL using aiohttp"""
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, timeout=5) as response:
-                return await getattr(response, content_type)() if response.status == 200 else None
+                return (
+                    await getattr(response, content_type)()
+                    if response.status == 200
+                    else None
+                )
         except aiohttp.ClientError:
             return None
 
@@ -68,6 +75,7 @@ async def _fetch_antenax(url: str) -> Optional[Song]:
             pass
 
     return None
+
 
 async def fetch_antena1() -> Optional[Song]:
     """Fetches currently playing song and artist from Antena 1"""
@@ -198,6 +206,7 @@ async def fetch_sbsr() -> Optional[Song]:
 
     return None
 
+
 async def main():
     tasks = [
         asyncio.create_task(fetch_antena1()),
@@ -212,13 +221,30 @@ async def main():
         asyncio.create_task(fetch_sbsr()),
         asyncio.create_task(fetch_megahits()),
         asyncio.create_task(fetch_renascenca()),
-        asyncio.create_task(fetch_rfm())
+        asyncio.create_task(fetch_rfm()),
     ]
 
     results = await asyncio.gather(*tasks)
-    for radio, result in zip(["Antena1", "Antena3", "Comercial", "M80", "CidadeFM", "Smooth",
-                             "Futura", "Radar", "Oxigenio", "SBSR", "MegaHits", "Renascenca", "RFM"], results):
+    for radio, result in zip(
+        [
+            "Antena1",
+            "Antena3",
+            "Comercial",
+            "M80",
+            "CidadeFM",
+            "Smooth",
+            "Futura",
+            "Radar",
+            "Oxigenio",
+            "SBSR",
+            "MegaHits",
+            "Renascenca",
+            "RFM",
+        ],
+        results,
+    ):
         print(f"{radio}: {result}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
