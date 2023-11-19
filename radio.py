@@ -43,16 +43,15 @@ class Radio:
             self.last_update = datetime.now()
             self.current_song = SpotifySong.from_search(song.title, song.artist)
             return True
-        return True
+        return False
 
-    async def poll(self, interval: int):
+    async def poll(self, interval: int, queue: asyncio.Queue):
         while True:
             updated = await self.fetch()
             if updated:
-                yield self.current_song
+                await queue.put(self)
             # print(f"Updated {self.name}")
             await asyncio.sleep(interval)
-            
 
 
 def available_radios() -> list[Radio]:
@@ -61,7 +60,7 @@ def available_radios() -> list[Radio]:
         Radio("Antena3", "https://www.rtp.pt/play/popup/antena3", "images/antena3.webp", fetch_antena3,),
         Radio("CidadeFM", "", "", fetch_cidadefm),
         Radio("Comercial", "", "images/comercial.svg", fetch_comercial),
-        Radio("Futura", "", "", fetch_futura),
+        # Radio("Futura", "", "", fetch_futura),
         Radio("M80", "", "images/m80.svg", fetch_m80),
         Radio("Megahits", "https://megahits.sapo.pt/", "images/megahits.svg", fetch_megahits),
         Radio("Oxigénio", "https://oxigenio.fm", "images/oxigenio.png", fetch_oxigenio),
