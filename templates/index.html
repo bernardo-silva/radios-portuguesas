@@ -1,20 +1,20 @@
-{% extends 'base.html' %} {% block content %}
-<div class="grid-container">
-  {% for radio in radios %}
-    <div class="radio-container">
-      <a href="{{radio.url }}" target="_blank">
-        <p>
-        <img src="{{ url_for('static', path=radio.image) }}"
-             style="height:16pt;" alt="{{ radio.name }}"></img>
-        </p>
-      </a>
-      <div
-            hx-get="radio/{{radio.name}}"
-            hx-trigger="load"
-            hx-swap="outerHTML"
-            style="border:black;">
-      </div>
-    </div>
-  {% endfor %}
+{% extends 'base.html' %}
+{% block content %}
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 mx-10 pb-14"
+         hx-ext="sse"
+         sse-connect="radio_stream/">
+        {% for radio in radios %}
+            <div class="card bg-neutral text-neutral-content p-2">
+                <h1 class="card-title justify-center mb-2">
+                    <a class="link" href="{{ radio.url }}" target="_blank">{{ radio.name }}</a>
+                </h1>
+                <!-- <img src="{{ url_for('static', path=radio.image) }}" -->
+                <!--      style="height:14pt" -->
+                <!--      alt="{{ radio.name }}"> -->
+            </img>
+            <div hx-get="radio/{{ radio.name }}"
+                 hx-trigger="sse:update_{{ radio.name }}, load"></div>
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

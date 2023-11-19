@@ -1,13 +1,9 @@
-<div 
-  class="song-card"
-  id="radio" 
-  hx-get="/radio/{{ radio_name }}"
-  hx-trigger="click, every 10s"
-  hx-swap="outerHTML">
-    <a href={{ song.spotify_url }} >
-    <img class="album-cover" src="{{ song.image_url }}" alt="No music playing">
+<div class="card-body p-0 justify-start text-left" id="radio">
+    <a class="link" href={{ song.spotify_url }}>
+        <figure>
+            <img class="rounded-2xl" src="{{ song.image_url }}" alt="No music playing">
+        </figure>
     </a>
-    <div class="song-title" title="{{ song.title }} "> {{ song.title }} </div>
-    <div class="song-artist" title="{{ song.artist }}"> {{ song.artist }} </div>
+    <h2 class="card-title truncate" title="{{ song.title }} ">{{ song.title }}</h2>
+    <div class="truncate" title="{{ song.artist }}">{{ song.artist }}</div>
 </div>
-
